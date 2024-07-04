@@ -15,8 +15,16 @@
     <div id="reader"></div>
     <script>
         function onScanSuccess(decodedText, decodedResult) {
-            // Extract the information from the decoded text
-            const [barcode, date, branch, name] = decodedText.split(',');
+            console.log(`Decoded text: ${decodedText}`);
+            
+            // Assuming the format of the decoded text is "barcode,date,branch,name"
+            const data = decodedText.split(',');
+            if (data.length !== 4) {
+                alert('Invalid QR code format');
+                return;
+            }
+
+            const [barcode, date, branch, name] = data;
 
             fetch('/attendance', {
                 method: 'POST',
@@ -33,11 +41,23 @@
             });
         }
 
+        function onScanFailure(error) {
+            console.warn(`QR code scan error: ${error}`);
+        }
+
         const html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)
-            .catch(err => {
-                console.log(`Error: ${err}`);
-            });
+
+        html5QrCode.start(
+            { facingMode: "environment" },
+            {
+                fps: 10,
+                qrbox: 250
+            },
+            onScanSuccess,
+            onScanFailure
+        ).catch(err => {
+            console.log(`Error initializing QR code scanner: ${err}`);
+        });
     </script>
 </body>
 </html>
